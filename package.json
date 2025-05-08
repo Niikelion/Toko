@@ -1,0 +1,17 @@
+{
+    "name": "com.niikelion.utils.toko",
+    "version": "0.0.1",
+    "displayName": "Toko",
+    "description": "Context management library for Unity.",
+    "unity": "6000.0",
+    "keywords": [
+        "context", "utility"
+    ],
+    "author": {
+        "name": "Michał Osiński",
+        "email": "michal.osinski101@gmail.com"
+    },
+    "publishConfig": {
+        "registry": "https://package.openupm.com"
+    }
+}
