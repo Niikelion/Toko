@@ -1,5 +1,5 @@
 {
-    "name": "com.niikelion.utils.toko",
+    "name": "com.niikelion.toko.core",
     "version": "0.0.1",
     "displayName": "Toko",
     "description": "Context management library for Unity.",

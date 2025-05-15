@@ -3,25 +3,14 @@ using System.Collections.Generic;
 using System.Threading;
 using JetBrains.Annotations;
 
-namespace Toko
+namespace Toko.Core
 {
-    [PublicAPI]
-    public class ContextScope : IDisposable
-    {
-        public delegate void OnScopeEnd();
-        
-        [NotNull] private readonly OnScopeEnd onScopeEnd;
-
-        public ContextScope([NotNull] OnScopeEnd onScopeEnd) => this.onScopeEnd = onScopeEnd;
-        public void Dispose() => onScopeEnd();
-    }
-    
     [PublicAPI]
     public interface IContext<T>
     {
         public T Value { get; }
 
-        [NotNull] public ContextScope Provide(T value);
+        public Finally Provide(T value);
     }
     
     [PublicAPI]
@@ -39,7 +28,7 @@ namespace Toko
 
         public Context(T initialValue) => (valueStack.Value ??= new()).Push(initialValue);
 
-        public ContextScope Provide(T value)
+        public Finally Provide(T value)
         {
             var stack = valueStack.Value;
             stack.Push(value);
