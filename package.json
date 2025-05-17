@@ -1,8 +1,8 @@
 {
     "name": "com.niikelion.toko.core",
-    "version": "0.0.1",
+    "version": "1.0.0",
     "displayName": "Toko",
-    "description": "Context management library for Unity.",
+    "description": "State management library for Unity.",
     "unity": "6000.0",
     "keywords": [
         "context", "utility"

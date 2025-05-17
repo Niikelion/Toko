@@ -14,18 +14,20 @@ namespace Toko.Core
     }
     
     [PublicAPI]
-    public class UseOutsideScopeException : Exception
+    public sealed class UseOutsideScopeException : Exception
     {
         public UseOutsideScopeException() : base("Cannot read context value outside context scope") { }
     }
     
     [PublicAPI]
-    public class Context<T> : IContext<T>
+    public sealed class Context<T> : IContext<T>
     {
         public T Value => valueStack.Value.TryPeek(out var value) ? value : throw new UseOutsideScopeException();
 
         private readonly AsyncLocal<Stack<T>> valueStack = new();
 
+        public static Context<T> New => new(default);
+        
         public Context(T initialValue) => (valueStack.Value ??= new()).Push(initialValue);
 
         public Finally Provide(T value)
@@ -35,7 +37,7 @@ namespace Toko.Core
             return new(() => stack.Pop());
         }
     }
-
+    
     [PublicAPI]
     public static class ContextExtensions
     {
