@@ -1,41 +1,48 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
 // ReSharper disable InconsistentNaming
 
 namespace Toko.Core
 {
-    [PublicAPI] public sealed class Variable<T>: IObservable<T>
+    [PublicAPI] public interface IValue<T> : IObservable<T>
     {
-        public event IObservable.UpdateHandler OnUpdate
+        public T Value { get; }
+
+        private static Context<HashSet<IValue<T>>> TrackingContext = new (null);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected static void RegisterUse(IValue<T> value) => TrackingContext.Value?.Add(value);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected static IValue<T>[] RunCatchingUses(Action action)
         {
-            add
-            {
-                onUpdate += value;
-                value();
-            }
-            remove => onUpdate -= value;
+            var uses = new HashSet<IValue<T>>();
+            using (TrackingContext.Provide(uses)) action();
+
+            return uses.ToArray();
         }
-        public event IObservable<T>.ChangeHandler OnChange
-        {
-            add
-            {
-                onChange += value;
-                value(this.value);
-            }
-            remove => onChange -= value;
-        }
-        
-        private event IObservable.UpdateHandler onUpdate;
-        private event IObservable<T>.ChangeHandler onChange;
+    }
+    
+    [PublicAPI] public sealed class Variable<T>: IValue<T>
+    {
+        public event IObservable.UpdateHandler OnUpdate;
+        public event IObservable<T>.ChangeHandler OnChange;
 
         public T Value
         {
-            get => value;
+            get
+            {
+                IValue<T>.RegisterUse(this);
+                return value;
+            }
             set
             {
                 this.value = value;
-                onUpdate?.Invoke();
-                onChange?.Invoke(value);
+                OnUpdate?.Invoke();
+                OnChange?.Invoke(value);
             }
         }
 
@@ -47,8 +54,8 @@ namespace Toko.Core
         public Variable(T value) => this.value = value;
         public void Dispose()
         {
-            onUpdate = null;
-            onChange = null;
+            OnUpdate = null;
+            OnChange = null;
             value = default;
         }
     }

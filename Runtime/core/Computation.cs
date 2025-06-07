@@ -1,95 +1,80 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
-// ReSharper disable InconsistentNaming
 
 namespace Toko.Core
 {
-    [PublicAPI] public sealed class Computation<T>: IObservable<T>
+    [PublicAPI] public sealed class Computation<T>: IValue<T>
     {
         public delegate T ValueFactory();
         public delegate bool ComparisonPredicate(T oldValue, T newValue);
-        
-        public event IObservable.UpdateHandler OnUpdate
+
+        public event IObservable.UpdateHandler OnUpdate;
+        public event IObservable<T>.ChangeHandler OnChange;
+
+        public T Value
         {
-            add
+            get
             {
-                if (onUpdate == null && onChange == null) SubscribeToDependencies();
-                onUpdate += value;
+                IValue<T>.RegisterUse(this);
+                return value;
             }
-            remove
+            private set
             {
-                onUpdate -= value;
-                if (onUpdate == null && onChange == null) UnsubscribeFromDependencies();
+                var previous = this.value;
+                this.value = value;
+                
+                if (comparison(previous, this.value)) return;
+                
+                OnUpdate?.Invoke();
+                OnChange?.Invoke(value);
             }
         }
 
-        public event IObservable<T>.ChangeHandler OnChange
-        {
-            add
-            {
-                if (onUpdate == null && onChange == null) SubscribeToDependencies();
-                onChange += value;
-                value(Value);
-            }
-            remove
-            {
-                onChange -= value;
-                if (onUpdate == null && onChange == null) UnsubscribeFromDependencies();
-            }
-        }
-        
-        private event IObservable.UpdateHandler onUpdate;
-        private event IObservable<T>.ChangeHandler onChange;
-
-        public T Value { get; private set; }
+        private T value;
 
         [NotNull] private ValueFactory factory;
         [NotNull] private ComparisonPredicate comparison;
-        [NotNull] private IObservable[] dependencies;
+        [NotNull] private IValue<T>[] dependencies;
 
         public static implicit operator T(Computation<T> v) => v.Value;
 
-        public Computation([NotNull] ValueFactory factory, [NotNull] ComparisonPredicate comparison, params IObservable[] dependencies)
+        public Computation([NotNull] ValueFactory factory, [NotNull] ComparisonPredicate comparison)
         {
             this.comparison = comparison;
-            this.dependencies = dependencies;
             this.factory = factory;
-            Value = factory();
+            dependencies = Array.Empty<IValue<T>>();
+            RecalculateAndCache(true);
         }
 
-        public Computation([NotNull] ValueFactory factory, params IObservable[] dependencies):
-            this(factory, comparison: EqualityComparer<T>.Default.Equals, dependencies: dependencies) {}
+        public Computation([NotNull] ValueFactory factory): this(factory, comparison: EqualityComparer<T>.Default.Equals) {}
         
         public void Dispose()
         {
             UnsubscribeFromDependencies();
             
-            onUpdate = null;
-            onChange = null;
+            OnUpdate = null;
+            OnChange = null;
             Value = default;
         }
 
-        private void RecalculateAndCache()
+        private void RecalculateAndCache(bool force = false)
         {
-            var previousValue = Value;
-            Value = factory();
-
-            if (comparison(previousValue, Value)) return;
-            
-            onUpdate?.Invoke();
-            onChange?.Invoke(Value);
+            UnsubscribeFromDependencies();
+            dependencies = IValue<T>.RunCatchingUses(() => Value = factory());
         }
+        private void OnDependenciesChanged() => RecalculateAndCache();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void SubscribeToDependencies()
         {
-            foreach (var dependency in dependencies) dependency.OnUpdate += RecalculateAndCache;
+            foreach (var dependency in dependencies) dependency.OnUpdate += OnDependenciesChanged;
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void UnsubscribeFromDependencies()
         {
-            foreach (var dependency in dependencies) dependency.OnUpdate -= RecalculateAndCache;
+            foreach (var dependency in dependencies) dependency.OnUpdate -= OnDependenciesChanged;
         }
     }
 }

@@ -1,6 +1,6 @@
 {
     "name": "com.niikelion.toko.core",
-    "version": "1.0.0",
+    "version": "2.0.0",
     "displayName": "Toko",
     "description": "State management library for Unity.",
     "unity": "6000.0",
@@ -13,5 +13,6 @@
     },
     "publishConfig": {
         "registry": "https://package.openupm.com"
-    }
+    },
+    "testables": [ "com.niikelion.toko.core.Tests" ]
 }

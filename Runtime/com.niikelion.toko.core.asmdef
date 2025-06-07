@@ -1,5 +1,5 @@
 ﻿{
-  "name": "com.niikelion.utils.toko",
+  "name": "com.niikelion.toko.core",
   "rootNamespace": "Toko",
   "references": [],
   "includePlatforms": [],

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading;
 using JetBrains.Annotations;
 
@@ -22,20 +21,22 @@ namespace Toko.Core
     [PublicAPI]
     public sealed class Context<T> : IContext<T>
     {
-        public T Value => valueStack.Value.TryPeek(out var value) ? value : throw new UseOutsideScopeException();
+        public T Value => valueStack.Value.Peek();
 
-        private readonly AsyncLocal<Stack<T>> valueStack = new();
+        private readonly AsyncLocal<ImmutableStack<T>> valueStack = new();
 
         public static Context<T> New => new(default);
         
-        public Context(T initialValue) => (valueStack.Value ??= new()).Push(initialValue);
+        public Context(T initialValue) => valueStack.Value = ImmutableStack<T>.Empty.Push(initialValue);
 
         public Finally Provide(T value)
         {
-            var stack = valueStack.Value;
-            stack.Push(value);
-            return new(() => stack.Pop());
+            Push(value);
+            return new(Pop);
         }
+
+        private void Push(T value) => valueStack.Value = valueStack.Value.Push(value);
+        private void Pop() => valueStack.Value = valueStack.Value.Pop();
     }
     
     [PublicAPI]
