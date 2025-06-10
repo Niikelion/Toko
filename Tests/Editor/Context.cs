@@ -1,12 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using Toko.Core;
 
-namespace Toko.Tests.Runtime
+namespace Toko.Tests.Editor
 {
     [TestFixture]
-    public class Context
+    public class ContextFixture
     {
         [Test]
         public void TheProvidedValueDoesNotLeakToTheParentScope()
@@ -83,9 +84,26 @@ namespace Toko.Tests.Runtime
         }
 
         [Test]
-        public void ContextPreservesValueInCoroutine()
+        public void ContextDoesNotPreserveValueInCoroutine()
         {
-            //TODO: do
+            var context = new Context<int>(2);
+            IEnumerator<int> enumerator;
+
+            using (context.Provide(1))
+            {
+                enumerator = Foo();
+                enumerator.MoveNext();
+                Assert.That(enumerator.Current, Is.EqualTo(1));
+            }
+
+            enumerator.MoveNext();
+            Assert.That(enumerator.Current, Is.EqualTo(2));
+            return;
+
+            IEnumerator<int> Foo()
+            {
+                for (int i = 0; i < 10; i++) yield return context.Value;
+            }
         }
 
         [Test]
@@ -103,10 +121,25 @@ namespace Toko.Tests.Runtime
             callback();
             return;
             
-            void Foo()
+            void Foo() => Assert.That(context.Value, Is.EqualTo(6));
+        }
+
+        [Test]
+        public void ContextValueIsRestoredWhenExitingScope()
+        {
+            var context = new Context<int>(5);
+
+            Assert.That(context.Value, Is.EqualTo(5));
+            using (context.Provide(4))
             {
-                Assert.That(context.Value, Is.EqualTo(6));
+                Assert.That(context.Value, Is.EqualTo(4));
+                using (context.Provide(3))
+                {
+                    Assert.That(context.Value, Is.EqualTo(3));
+                }
+                Assert.That(context.Value, Is.EqualTo(4));
             }
+            Assert.That(context.Value, Is.EqualTo(5));
         }
     }
 }

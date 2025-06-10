@@ -9,9 +9,10 @@ and making it easier to write event-based code instead of update-based.
 Core parts of the library:
 
 - [Contexts](#contexts)
-- [Observables](#observables)
+- [Signals](#signals)
 - [Resource containers](#resource-containers)
 - [Scope functions](#scope-functions)
+- [Roadmap](#roadmap)
 
 ## Contexts
 
@@ -73,24 +74,88 @@ Delegates can be wrapped using `Extend` method that captures current context val
 Input.OnNewPlayerDetected += GameManager.Context.Extend(SpawnPlayer);
 ```
 
-## Observables
+## Signals
 
-Interfaces `IObservable` and `IObersable<T>: IObservable` represent update sources.
-The second variant is also a value emitter.
-You can subscribe to the plain `OnUpdate` event of the source to react to all updates.
-To watch value changes and also get the value in an argument, you can subscribe to `OnChange` event.
+Signals empower you to write event driven code that reacts to value changes instead of checking values during Update or in coroutine.
 
-If you just want something similar to the C# events, you should use `Observable` and `Observable<T>` implementations of these interfaces.
+### Trigger
 
-Public events coupled with some public field that are fired on their update can be replaced with `Variable<T>` observable.
-It fires events on every value change.
-Additionally, when subscribing to the `OnChange` event with some delegate, it will be immediately called with the current value.
+Triggers are signals that do not carry any value and work as events that can be passed around as values.
+`Trigger` implements `ISignal` interface, that provides `Event` that you can subscribe to.
+You can also use the `Subscribe` and `Unsubscribe` methods.
 
-The last building block of the Toko observables is `Computation` class.
-It can be used to easily compute some values based on other value emitters.
-It automatically subscribes to value emitters from the provided dependency list and if any of them changes, recalculates the value.
-Before firing its own events, it checks if the computed value actually changed.
-You can provide your own comparison function to control or even disable this behavior.
+Every `ISignal<T>` signal can be converted to a trigger using `ToTrigger()` method.
+
+Example:
+```csharp
+using var trigger = new Trigger();
+trigger.Subscribe(() => Debug.Log("Triggered"));
+
+trigger.Dispatch();
+```
+
+### Signal
+
+Signals work as events with single argument that can be passed around as values.
+`Signal<T>` implements `ISignal<T>` interface, that provides `Event` that you can subscribe to.
+You can also use the `Subscribe` and `Unsubscribe` methods.
+
+Example:
+```csharp
+using var signal = new Signal<int>();
+signal.Subscribe(v => Debug.Log(v));
+
+signal.Dispatch(5);
+```
+
+### Var
+
+Variables are wrappers around values that expose event fired on every value assignment.
+They implement `IValueSignal<T>` interface, that extends `ISignal<T>`.
+You can read the value with `Value` property, or cast just it to `T`.
+Additionally, it implements the `IDependableSignal` interface, which allows detecting it as a dependency.
+
+Example:
+```csharp
+using var variable = new Var<int>(0);
+variable.Subscribe(v => Debug.Log(v));
+
+variable.Value += 5;
+Debug.Log(variable.Value);
+```
+
+### Val
+
+Values represent signals that are computed based on some dependencies.
+You don't event need to provide the list of the dependencies, they just need to implement `IDependableSignal` interface.
+`Val` class implements the `IDependentOnSignals` interface, which allows it to track the `IDependableSignal` uses during computation.
+It implements the `IDependableSignal` as well, so it can be used as a dependency itself.
+
+Example:
+```csharp
+using var a = new Var<float>(4f);
+using var b = new Var<float>(5f);
+using var h = new Var<float>(7f);
+using var area = new Val<float>(() => a * b);
+using var volume = new Val<float>(() => area * h);
+
+area.Subscribe(v => Debug.Log($"area: {area.Value}"));
+volume.Subscribe(v => Debug.Log($"volume: {volume.Value}"));
+a.Value = 1;
+b.Value = 3;
+h.Value = 2;
+```
+
+### Effect
+
+Effects work similar to the values, but don't produce any value as the result and cannot be used as dependencies.
+`Effect` class implements the `IDependentOnSignals` and `ISignal` interfaces.
+
+Example:
+```csharp
+using var a = new Var<float>(5f);
+using var _ = new Effect(() => Debug.Log(a.Value));
+```
 
 ## Resource containers
 
@@ -109,3 +174,20 @@ Available extensions:
 - `Apply` - calls provided delegate with current value as only argument and return current value.
 - `Also` - same as `Apply` but accepts delegate without arguments
 - `When` - when `condition` is `true` it maps value using provided delegate to some value of the same type or any of the base types or interfaces
+
+## Roadmap
+
+### V2
+
+* [x] `Trigger` - simple trigger
+* [x] `Signal` - value emitter
+* [x] `Var`- subscribable variable
+* [x] `Val` - value that automatically recalculates
+* [x] `Effect` - callback with automatic dependencies
+* [ ] `Cache` - `ISignal<T>` wrapper that drops events when value was not changed, also stores the last value
+* [ ] `Debounce` - `ISignal` and `ISignal<T>` wrapper that drops excessive events when sent too fast
+
+### V3
+
+* [ ] subscription scopes
+* [ ] disabling / enabling effects

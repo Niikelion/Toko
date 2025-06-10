@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using JetBrains.Annotations;
 
 namespace Toko.Core
@@ -8,9 +9,9 @@ namespace Toko.Core
     {
         public delegate void OnDispose();
         
-        [NotNull] private readonly OnDispose onDispose;
+        private readonly OnDispose onDispose;
         
-        public Finally([NotNull] OnDispose onDispose) => this.onDispose = onDispose;
+        public Finally(OnDispose onDispose) => this.onDispose = onDispose;
         public void Dispose() => onDispose();
     }
 }

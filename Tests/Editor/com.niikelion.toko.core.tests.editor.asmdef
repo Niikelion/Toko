@@ -1,11 +1,11 @@
 ﻿{
-  "name": "com.niikelion.toko.core.Tests",
+  "name": "com.niikelion.toko.core.tests.editor",
   "references": [
     "com.niikelion.toko.core"
   ],
   "optionalUnityReferences": [
     "TestAssemblies"
   ],
-  "includePlatforms": [],
+  "includePlatforms": [ "Editor" ],
   "excludePlatforms": []
 }

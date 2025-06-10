@@ -21,16 +21,18 @@ namespace Toko.Core
             this.head = head;
             this.tail = tail;
         }
-        
-        public ImmutableStack<T> Clear() => Empty;
-
         public ImmutableStack<T> Push(T value) => new(value, this);
         public ImmutableStack<T> Pop() => tail ?? throw new InvalidOperationException("Stack is empty");
-        public T Peek() => head ?? throw new InvalidOperationException("Stack is empty");
+        public T Peek() => IsEmpty ? throw new InvalidOperationException("Stack is empty") : head!;
         
         public IEnumerator<T> GetEnumerator()
         {
-            while (!IsEmpty) yield return head!;
+            var node = this;
+            while (!node!.IsEmpty)
+            {
+                yield return node.Peek();
+                node = node.tail;
+            }
         }
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();

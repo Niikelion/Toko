@@ -12,10 +12,22 @@ namespace Toko.Core
         private HashSet<IDisposable> resourceSet = new ();
 
         public virtual void OnDestroy() => ReleaseResources();
-        public void Use(IDisposable disposable)
+        public void Use(params IDisposable[] disposables)
         {
-            if (!resourceSet.Add(disposable)) return;
-            resources.Add(disposable);
+            foreach (var disposable in disposables)
+            {
+                if (!resourceSet.Add(disposable)) continue;
+                resources.Add(disposable);
+            }
+        }
+
+        public void Dispose(params IDisposable[] disposables)
+        {
+            foreach (var disposable in disposables)
+            {
+                if (!resourceSet.Remove(disposable)) continue;
+                disposable.Dispose();
+            }
         }
 
         protected void ReleaseResources()
