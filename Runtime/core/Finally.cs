@@ -1,11 +1,9 @@
 ﻿#nullable enable
 using System;
-using JetBrains.Annotations;
 
 namespace Toko.Core
 {
-    [PublicAPI]
-    public struct Finally: IDisposable
+    public readonly struct Finally: IDisposable
     {
         public delegate void OnDispose();
         

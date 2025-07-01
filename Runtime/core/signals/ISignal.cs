@@ -1,6 +1,5 @@
 ﻿#nullable enable
 using System;
-using JetBrains.Annotations;
 
 namespace Toko.Core.Signals
 {

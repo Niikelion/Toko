@@ -1,14 +1,12 @@
 ﻿#nullable enable
 using System.Runtime.CompilerServices;
-using JetBrains.Annotations;
 
 namespace Toko.Core.Signals
 {
-    [PublicAPI]
-    public class Val<T>: DependentBase, IValueSignal<T>
+    public sealed class Val<T> : DependentBase, IValueSignal<T>
     {
         public delegate T Factory();
-        
+
         public event ISignal<T>.Handler? Event;
 
         public T Value
@@ -41,8 +39,7 @@ namespace Toko.Core.Signals
 
         protected override void AfterRun() => Event?.Invoke(value);
     }
-
-    [PublicAPI]
+#if UNITY_6000_0_OR_NEWER
     public static class ValueExtensions
     {
         public static Val<T> Compute<T>(this MonoBehaviourWithResources obj, Val<T>.Factory factory)
@@ -52,4 +49,5 @@ namespace Toko.Core.Signals
             return val;
         }
     }
+#endif
 }

@@ -1,10 +1,8 @@
 ﻿#nullable enable
-using JetBrains.Annotations;
 
 namespace Toko.Core.Signals
 {
-    [PublicAPI]
-    public class Effect: DependentBase, ISignal
+    public class Effect : DependentBase, ISignal
     {
         public event ISignal.Handler? Event;
 
@@ -18,8 +16,7 @@ namespace Toko.Core.Signals
 
         protected override void AfterRun() => Event?.Invoke();
     }
-
-    [PublicAPI]
+#if UNITY_6000
     public static class EffectExtensions
     {
         public static Effect MakeEffect(this MonoBehaviourWithResources obj, IDependentOnSignals.Callback callback)
@@ -29,4 +26,5 @@ namespace Toko.Core.Signals
             return effect;
         }
     }
+#endif
 }

@@ -1,17 +1,19 @@
-﻿using System;
+﻿#if UNITY_6000_0_OR_NEWER
+
+#nullable enable
+using System;
 using System.Collections.Generic;
-using JetBrains.Annotations;
 using UnityEngine;
 
 namespace Toko.Core
 {
-    [PublicAPI]
     public class MonoBehaviourWithResources : MonoBehaviour
     {
-        private List<IDisposable> resources = new ();
-        private HashSet<IDisposable> resourceSet = new ();
+        private readonly List<IDisposable> resources = new();
+        private readonly HashSet<IDisposable> resourceSet = new();
 
         public virtual void OnDestroy() => ReleaseResources();
+
         public void Use(params IDisposable[] disposables)
         {
             foreach (var disposable in disposables)
@@ -39,3 +41,4 @@ namespace Toko.Core
         }
     }
 }
+#endif

@@ -1,9 +1,7 @@
 ﻿#nullable enable
-using JetBrains.Annotations;
 
 namespace Toko.Core.Signals
 {
-    [PublicAPI]
     public sealed class Trigger: ISignal
     {
         internal abstract class TriggerWrapper : ISignal
@@ -53,7 +51,6 @@ namespace Toko.Core.Signals
         public void Dispose() => Event = null;
     }
     
-    [PublicAPI]
     public static class TriggerExtensions
     {
         public static ISignal AsTrigger<T>(this ISignal<T> signal) => new Trigger.Wrapper<T>(signal);

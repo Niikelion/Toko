@@ -1,10 +1,8 @@
 ﻿#nullable enable
 using System.Runtime.CompilerServices;
-using JetBrains.Annotations;
 
 namespace Toko.Core.Signals
 {
-    [PublicAPI]
     public sealed class Var<T> : IValueSignal<T>
     {
         public event ISignal<T>.Handler? Event;
@@ -38,4 +36,15 @@ namespace Toko.Core.Signals
             value = default!;
         }
     }
+#if UNITY_6000_0_OR_NEWER
+    public static class VarExtensions
+    {
+        public static Var<T> Var<T>(this MonoBehaviourWithResources obj, T value)
+        {
+            var v = new Var<T>(value);
+            obj.Use(v);
+            return v;
+        }
+    }
+#endif
 }
