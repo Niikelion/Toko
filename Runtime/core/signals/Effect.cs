@@ -16,7 +16,7 @@ namespace Toko.Core.Signals
 
         protected override void AfterRun() => Event?.Invoke();
     }
-#if UNITY_6000
+#if UNITY_2022_3_OR_NEWER
     public static class EffectExtensions
     {
         public static Effect MakeEffect(this MonoBehaviourWithResources obj, IDependentOnSignals.Callback callback)

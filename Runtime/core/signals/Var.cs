@@ -36,7 +36,7 @@ namespace Toko.Core.Signals
             value = default!;
         }
     }
-#if UNITY_6000_0_OR_NEWER
+#if UNITY_2022_3_OR_NEWER
     public static class VarExtensions
     {
         public static Var<T> Var<T>(this MonoBehaviourWithResources obj, T value)

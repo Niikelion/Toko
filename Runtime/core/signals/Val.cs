@@ -39,7 +39,7 @@ namespace Toko.Core.Signals
 
         protected override void AfterRun() => Event?.Invoke(value);
     }
-#if UNITY_6000_0_OR_NEWER
+#if UNITY_2022_3_OR_NEWER
     public static class ValueExtensions
     {
         public static Val<T> Compute<T>(this MonoBehaviourWithResources obj, Val<T>.Factory factory)
