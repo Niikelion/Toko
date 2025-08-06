@@ -18,13 +18,19 @@ namespace Toko.Core
         private readonly AsyncLocal<ImmutableStack<T>> valueStack = new();
 
         public static Context<T> New => new(default!);
+
+        private readonly Finally onScopeEnd;
         
-        public Context(T initialValue) => valueStack.Value = ImmutableStack<T>.Empty.Push(initialValue);
+        public Context(T initialValue)
+        {
+            onScopeEnd = new(Pop);
+            valueStack.Value = ImmutableStack<T>.Empty.Push(initialValue);
+        }
 
         public Finally Provide(T value)
         {
             Push(value);
-            return new(Pop);
+            return onScopeEnd;
         }
 
         private void Push(T value) => valueStack.Value = valueStack.Value.Push(value);
