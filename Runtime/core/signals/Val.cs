@@ -22,7 +22,7 @@ namespace Toko.Core.Signals
         private ISignal? triggerWrapper;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator T(Val<T> variable) => variable.value;
+        public static implicit operator T(Val<T> variable) => variable.Value;
 
         public Val(Factory factory)
         {
