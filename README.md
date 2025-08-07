@@ -184,7 +184,7 @@ Available extensions:
 * [x] `Var`- subscribable variable
 * [x] `Val` - value that automatically recalculates
 * [x] `Effect` - callback with automatic dependencies
-* [ ] `Cache` - `ISignal<T>` wrapper that drops events when value was not changed, also stores the last value
+* [x] `Cache` - `ISignal<T>` wrapper that drops events when value was not changed, also stores the last value
 * [ ] `Debounce` - `ISignal` and `ISignal<T>` wrapper that drops excessive events when sent too fast
 
 ### V3
